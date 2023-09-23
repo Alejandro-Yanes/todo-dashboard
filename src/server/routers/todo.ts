@@ -48,4 +48,66 @@ export const todoRouter = router({
       todos,
     };
   }),
+  addBoard: privateProcedure.input(z.string()).mutation(async (opts) => {
+    const boardTitle = opts.input;
+    const currentUser = opts.ctx.currentUser;
+    if (!boardTitle) {
+      throw new TRPCError({
+        message: "Needs board title",
+        code: "BAD_REQUEST",
+      });
+    }
+
+    if (!currentUser) {
+      throw new TRPCError({
+        message: "Needs to be authenticated",
+        code: "UNAUTHORIZED",
+      });
+    }
+
+    const board = await opts.ctx.prisma.board.create({
+      data: { title: boardTitle, userId: currentUser },
+    });
+
+    return { board };
+  }),
+  getBoardById: privateProcedure.input(z.string()).query(async (opts) => {
+    const boardId = opts.input;
+
+    if (!boardId) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Needs board Id" });
+    }
+
+    const board = await opts.ctx.prisma.board.findUnique({
+      where: { id: boardId },
+      include: { todos: { include: { substacks: true } } },
+    });
+
+    return {
+      board,
+    };
+  }),
+  getBoardsByUser: privateProcedure.query(async (opts) => {
+    const currentUser = opts.ctx.currentUser;
+
+    if (!currentUser) {
+      throw new TRPCError({
+        message: "Needs to be authenticated",
+        code: "UNAUTHORIZED",
+      });
+    }
+
+    const boards = await opts.ctx.prisma.board.findMany({
+      where: { userId: currentUser },
+    });
+
+    const boardsCount = await opts.ctx.prisma.board.count({
+      where: { userId: currentUser },
+    });
+
+    return {
+      boards,
+      boardsCount,
+    };
+  }),
 });

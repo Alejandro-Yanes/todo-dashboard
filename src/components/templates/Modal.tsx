@@ -6,11 +6,13 @@ import { AiOutlineClose } from "react-icons/ai";
 import Button from "../atoms/Button";
 import { toast } from "react-hot-toast";
 import { trpc } from "@/utils/trpc";
+import { useCreateTodoModal } from "@/hooks/zustand/useCreateTodoModal";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 export type ModalProps = {};
 
 const Modal: React.FunctionComponent<ModalProps> = (props) => {
+  const { isOpen, setClose } = useCreateTodoModal();
   const { mutate } = trpc.todo.addTodo.useMutation({});
   const {
     register,
@@ -27,22 +29,22 @@ const Modal: React.FunctionComponent<ModalProps> = (props) => {
     resolver: zodResolver(addTodo),
   });
 
-  console.log(isValid);
   const { fields, append, remove } = useFieldArray({
     name: "substacks",
     control,
   });
 
-  const onSubmit = (formData: IaddTodo) => {
+  const onSubmit = async (formData: IaddTodo) => {
     try {
       mutate(formData);
+      setClose();
       toast.success("created todo");
     } catch (err) {
       toast.error("error creating todo");
     }
   };
 
-  return null;
+  if (!isOpen) return null;
 
   return (
     <div className="h-full w-full absolute inset-0 bg-black/30 z-[999] flex items-center justify-center">

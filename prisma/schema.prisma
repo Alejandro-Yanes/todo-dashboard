@@ -19,25 +19,36 @@ model User {
   emailVerified  DateTime?
   image          String?
   todos          Todo[]
+  boards         Board[]
+}
+
+model Board {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  title  String
+  todos  Todo[]
+  User   User   @relation(fields: [userId], references: [id])
 }
 
 model Todo {
   id          String      @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String
+  userId      String      @db.ObjectId
+  boardId     String      @db.ObjectId
   substacks   Substacks[]
   status      StatusType
-  user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String?     @db.ObjectId
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Board       Board       @relation(fields: [boardId], references: [id])
 }
 
 model Substacks {
   id          String  @id @default(auto()) @map("_id") @db.ObjectId
   description String
-  todoId      String? @db.ObjectId
+  todoId      String  @db.ObjectId
   done        Boolean
 
-  Todo Todo? @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  Todo Todo @relation(fields: [todoId], references: [id], onDelete: Cascade)
 }
 
 enum StatusType {

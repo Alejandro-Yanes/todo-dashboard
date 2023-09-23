@@ -6,7 +6,6 @@ import { nextAuthOptions } from "./nextAuthOptions";
 export const requireAuth =
   (func: GetServerSideProps) => async (ctx: GetServerSidePropsContext) => {
     const session = await getServerSession(ctx.req, ctx.res, nextAuthOptions);
-    console.log(session, "running");
 
     if (!session) {
       return {

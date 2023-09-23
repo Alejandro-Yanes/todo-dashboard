@@ -25,7 +25,7 @@ const config: Config = {
         "light-text-secondary": "#bec0bf",
         "light-text-white": "#FFFFFF",
         "dark-text-primary": "#FFFFFF",
-        "dark-text-secondary": "#494a55",
+        "dark-text-secondary": "#787F8E",
       },
     },
   },
