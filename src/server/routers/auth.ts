@@ -6,24 +6,23 @@ import { signUpSchema } from "../validation/auth";
 
 export const authRouter = router({
   current: publicProcedure.query(async (opts) => {
-    const session = opts.ctx.session;
-    console.log(session?.user?.email);
-    if (!session?.user?.email) {
+    const currentUser = opts.ctx.currentUser;
+    if (!currentUser) {
       throw new Error("Not signed in");
     }
 
-    const currentUser = await opts.ctx.prisma.user.findUnique({
+    const user = await opts.ctx.prisma.user.findUnique({
       where: {
-        email: session.user?.email,
+        id: currentUser,
       },
     });
 
-    if (!currentUser) {
+    if (!user) {
       throw new Error("User doesnt exist");
     }
 
     return {
-      currentUser,
+      user,
     };
   }),
   register: publicProcedure.input(signUpSchema).mutation(async (opts) => {

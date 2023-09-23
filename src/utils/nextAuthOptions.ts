@@ -49,5 +49,7 @@ export const nextAuthOptions: NextAuthOptions = {
     secret: process.env.NEXTAUTH_JWTSECRET,
   },
   secret: process.env.NEXTAUTH_SECRET,
-  pages: {},
+  pages: {
+    signIn: "/auth/signin",
+  },
 };
