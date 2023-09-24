@@ -1,4 +1,4 @@
-import { IaddTodo, addTodo } from "@/server/validation/todo";
+import { IaddTodoForm, addTodoForm } from "@/server/validation/todo";
 import React, { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 
@@ -7,26 +7,30 @@ import Button from "../atoms/Button";
 import { toast } from "react-hot-toast";
 import { trpc } from "@/utils/trpc";
 import { useCreateTodoModal } from "@/hooks/zustand/useCreateTodoModal";
+import { useRouter } from "next/router";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 export type ModalProps = {};
 
 const Modal: React.FunctionComponent<ModalProps> = (props) => {
   const { isOpen, setClose } = useCreateTodoModal();
+  const router = useRouter();
+
+  const { boardId } = router.query;
   const { mutate } = trpc.todo.addTodo.useMutation({});
   const {
     register,
     handleSubmit,
     control,
     formState: { isValid, errors },
-  } = useForm<IaddTodo>({
+  } = useForm<IaddTodoForm>({
     defaultValues: {
       title: "",
       description: "",
       substacks: [{ name: "" }, { name: "" }],
       status: "DOING",
     },
-    resolver: zodResolver(addTodo),
+    resolver: zodResolver(addTodoForm),
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -34,9 +38,13 @@ const Modal: React.FunctionComponent<ModalProps> = (props) => {
     control,
   });
 
-  const onSubmit = async (formData: IaddTodo) => {
+  const onSubmit = async (formData: IaddTodoForm) => {
     try {
-      mutate(formData);
+      if (!boardId || typeof boardId !== "string") {
+        toast.error("boardId needs to be a string");
+        throw new Error("boardId needs to be a string");
+      }
+      mutate({ ...formData, boardId });
       setClose();
       toast.success("created todo");
     } catch (err) {
@@ -135,6 +143,7 @@ const Modal: React.FunctionComponent<ModalProps> = (props) => {
             <select
               id="status"
               className="border-2 dark:border-gray-200/10 bg-transparent rounded-md px-5 py-1 flex-grow dark:text-dark-grey "
+              {...register("status")}
             >
               <option value="TODO">Todo</option>
               <option value="DOING">Doing</option>

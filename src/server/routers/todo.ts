@@ -2,11 +2,13 @@ import { privateProcedure, publicProcedure, router } from "../trpc";
 
 import { TRPCError } from "@trpc/server";
 import { addTodo } from "../validation/todo";
+import todosRearange from "@/utils/todosRearange";
 import { z } from "zod";
 
 export const todoRouter = router({
   addTodo: privateProcedure.input(addTodo).mutation(async (opts) => {
-    const { status, description, substacks, title } = opts.input;
+    const { status, description, substacks, title, boardId } = opts.input;
+    console.log(opts.ctx.req.query);
 
     const currentUser = opts.ctx.currentUser;
 
@@ -23,6 +25,7 @@ export const todoRouter = router({
         title,
         status,
         userId: currentUser,
+        boardId,
       },
     });
 
@@ -83,8 +86,14 @@ export const todoRouter = router({
       include: { todos: { include: { substacks: true } } },
     });
 
+    if (!board) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Bad board id" });
+    }
+
+    const rearangedTodos = todosRearange(board.todos);
+
     return {
-      board,
+      board: rearangedTodos,
     };
   }),
   getBoardsByUser: privateProcedure.query(async (opts) => {
